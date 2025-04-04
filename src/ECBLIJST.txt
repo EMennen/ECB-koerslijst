@@ -1,0 +1,85 @@
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.StringReader;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.util.Scanner;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import javax.xml.parsers.DocumentBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.xpath.XPathExpression;
+import org.xml.sax.InputSource;
+
+public class ECBLIJST {
+
+    public static void main(String[] args) {
+        try {
+
+            URL url = new URI("https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml").toURL();
+
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.connect();
+
+            // Getting the response code
+            int responsecode = conn.getResponseCode();
+
+            if (responsecode != 200) {
+                throw new RuntimeException("HttpResponseCode: " + responsecode);
+            } else {
+
+                String inline = "";
+                Scanner scanner = new Scanner(url.openStream());
+
+                // Write all the JSON data into a string using a scanner
+                while (scanner.hasNext()) {
+                    inline += scanner.nextLine();
+                }
+
+                // Close the scanner
+                scanner.close();
+                System.out.println(inline);
+                XMLPARS(inline);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void XMLPARS(String xmlString) throws Exception {
+        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        InputSource is = new InputSource(new StringReader(xmlString));
+        Document doc = builder.parse(is);
+        doc.getDocumentElement().normalize();
+
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        String expression = "/Cube/Cube";
+        NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+        Node node = (Node) xPath.compile(expression).evaluate(doc, XPathConstants.NODE);
+        
+        XPathExpression expr = (XPathExpression) xPath.compile("//Cube/Cube/Cube");
+        Object result = expr.evaluate(doc, XPathConstants.NODESET);
+        NodeList nodes = (NodeList) result;
+        for (int i = 0; i < nodes.getLength(); i++) {
+          System.out.println(nodes.item(i).getNodeValue());
+        }
+
+        int n = nodeList.getLength();
+        Node current;
+        for (int i = 0; i < n; i++) {
+            current = nodeList.item(i);
+            if (current.getNodeType() == Node.ELEMENT_NODE) {
+                System.out.println(
+                        current.getNodeName() + ": " + current.getTextContent());
+            }
+        }
+    }
+}
