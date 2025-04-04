@@ -8,7 +8,7 @@ import java.util.List;
 public class CSVtoMariaDB {
     private static final String JDBC_URL = "jdbc:mariadb://localhost:3306/ECB";
     private static final String JDBC_USER = "root";
-    private static final String JDBC_PASSWORD = "Qmouse";
+    private static final String JDBC_PASSWORD = "xxxxxx";
 
     public static void main(String[] args) {
         String csvFile = "C:\\temp\\exchange_rates.csv";
